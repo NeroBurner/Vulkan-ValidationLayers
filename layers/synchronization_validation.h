@@ -189,6 +189,9 @@ class AccessContext {
     HazardResult DetectHazard(const IMAGE_STATE &image, SyncStageAccessIndex current_usage,
                               const VkImageSubresourceLayers &subresource, const VkOffset3D &offset,
                               const VkExtent3D &extent) const;
+    HazardResult DetectHazard(const IMAGE_STATE &image, SyncStageAccessIndex current_usage,
+                              const VkImageSubresourceRange &subres_range, const VkOffset3D &offset,
+                              const VkExtent3D &extent) const;
     HazardResult DetectImageBarrierHazard(const IMAGE_STATE & image, VkPipelineStageFlags src_exec_scope,
                                           SyncStageAccessFlags src_stage_accesses,
                                           const VkImageMemoryBarrier & barrier) const;
@@ -214,6 +217,9 @@ class AccessContext {
     void UpdateAccessState(const BUFFER_STATE & buffer, SyncStageAccessIndex current_usage, const ResourceAccessRange & range, const ResourceUsageTag & tag);
     void UpdateAccessState(const IMAGE_STATE &image, SyncStageAccessIndex current_usage,
                            const VkImageSubresourceLayers &subresource, const VkOffset3D &offset, const VkExtent3D &extent,
+                           const ResourceUsageTag &tag);
+    void UpdateAccessState(const IMAGE_STATE &image, SyncStageAccessIndex current_usage,
+                           const VkImageSubresourceRange &subres_range, const VkOffset3D &offset, const VkExtent3D &extent,
                            const ResourceUsageTag &tag);
 
     void ResolveChildContexts(const std::vector<AccessContext> &contexts);
@@ -453,4 +459,26 @@ class SyncValidator : public ValidationStateTracker, public SyncStageAccess {
     void PreCallRecordCmdBlitImage(VkCommandBuffer commandBuffer, VkImage srcImage, VkImageLayout srcImageLayout, VkImage dstImage,
                                    VkImageLayout dstImageLayout, uint32_t regionCount, const VkImageBlit *pRegions,
                                    VkFilter filter);
+
+    bool DetectDescriptorSetHazard(const CMD_BUFFER_STATE &cmd, const cvdescriptorset::DescriptorSet &descriptor_set,
+                                   const std::map<uint32_t, descriptor_req> &bindings) const;
+
+    bool DetectCommandBufferHazard(const CMD_BUFFER_STATE &cmd, VkPipelineBindPoint pipelineBindPoint) const;
+
+    bool PreCallValidateCmdDispatch(VkCommandBuffer commandBuffer, uint32_t x, uint32_t y, uint32_t z) const;
+
+    void UpdateDescriptorSetAccessState(const CMD_BUFFER_STATE &cmd, const cvdescriptorset::DescriptorSet &descriptor_set,
+                                        const std::map<uint32_t, descriptor_req> &bindings);
+
+    void UpdateCommandBufferAccessState(const CMD_BUFFER_STATE &cmd, VkPipelineBindPoint pipelineBindPoint);
+
+    void PostCallRecordCmdDispatch(VkCommandBuffer commandBuffer, uint32_t x, uint32_t y, uint32_t z);
+    /*
+    bool PreCallValidateCmdDispatchIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset) const;
+    void PostCallRecordCmdDispatchIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset);
+    bool PreCallValidateCmdDraw(VkCommandBuffer commandBuffer, uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex,
+                                uint32_t firstInstance) const;
+    void PostCallRecordCmdDraw(VkCommandBuffer commandBuffer, uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex,
+                               uint32_t firstInstance);
+    */
 };
