@@ -2833,7 +2833,8 @@ TEST_F(VkPositiveLayerTest, TestAliasedMemoryTracking) {
     alloc_info.memoryTypeIndex = 0;
 
     // Ensure memory is big enough for both bindings
-    alloc_info.allocationSize = 0x10000;
+    // In MockICD mode, the image memory size is not an accurate size. It might be much bigger than it supposed.
+    alloc_info.allocationSize = 0x100000;
 
     pass = m_device->phy().set_memory_type(mem_reqs.memoryTypeBits, &alloc_info, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
     if (!pass) {
