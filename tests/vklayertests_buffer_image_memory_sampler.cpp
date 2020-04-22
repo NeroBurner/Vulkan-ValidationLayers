@@ -10157,3 +10157,31 @@ TEST_F(VkLayerTest, SyncBlitImageHazards) {
 
     m_commandBuffer->end();
 }
+
+TEST_F(VkLayerTest, SyncCmdHazards) {
+    // TODO: Add code to enable sync validation
+    ASSERT_NO_FATAL_FAILURE(Init());
+
+    VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+    VkImageObj image(m_device);
+    const auto image_ci = VkImageObj::ImageCreateInfo2D(32, 32, 1, 1, format, usage, VK_IMAGE_TILING_OPTIMAL);
+    image.Init(image_ci);
+
+    VkImageView imageview = image.targetView(format);
+
+    VkBufferObj buffer;
+    VkMemoryPropertyFlags mem_prop = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    buffer.init_as_src_and_dst(*m_device, 2048, mem_prop);
+
+    VkBufferView bufferview;
+    auto bvci = lvl_init_struct<VkBufferViewCreateInfo>();
+    bvci.sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO;
+    bvci.buffer = buffer.handle();
+    bvci.format = VK_FORMAT_R32_SFLOAT;
+    bvci.range = VK_WHOLE_SIZE;
+
+    VkResult err = vk::CreateBufferView(m_device->device(), &bvci, NULL, &bufferview);
+    ASSERT_VK_SUCCESS(err);
+
+}
